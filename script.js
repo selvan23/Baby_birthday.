@@ -303,6 +303,46 @@ class MusicPlayer {
 }
 
 // ===================================
+// ENVELOPE ANIMATION
+// ===================================
+class Envelope {
+    constructor() {
+        this.wrapper = document.getElementById('envelope-wrapper');
+        this.envelope = document.querySelector('.envelope');
+        this.musicPlayer = null;
+
+        if (this.envelope) {
+            this.envelope.addEventListener('click', () => this.open());
+        }
+    }
+
+    setMusicPlayer(player) {
+        this.musicPlayer = player;
+    }
+
+    open() {
+        if (this.envelope.classList.contains('open')) return;
+
+        this.envelope.classList.add('open');
+
+        // Wait for flap animation, then slide up the wrapper
+        setTimeout(() => {
+            this.wrapper.classList.add('opened');
+
+            // Start music automatically when opened
+            if (this.musicPlayer && !this.musicPlayer.isPlaying) {
+                this.musicPlayer.toggle();
+            }
+
+            // Remove from DOM after transition to save resources
+            setTimeout(() => {
+                this.wrapper.remove();
+            }, 1000);
+        }, 1200);
+    }
+}
+
+// ===================================
 // SCROLL ANIMATIONS
 // ===================================
 class ScrollAnimations {
@@ -384,7 +424,10 @@ document.addEventListener('DOMContentLoaded', () => {
     new Sparkle();
     new CountdownTimer(CONFIG.birthdayDate);
     new GiftBoxGame();
-    new MusicPlayer();
+    const musicPlayer = new MusicPlayer();
+    const envelope = new Envelope();
+    envelope.setMusicPlayer(musicPlayer);
+
     new ScrollAnimations();
     initMapButton();
     initSmoothScroll();
