@@ -224,11 +224,25 @@ class GiftBoxGame {
             const isWinner = Math.random() > 0.5;
 
             if (isWinner) {
+                // Winner - Play crowd cheer sound
                 const prize = CONFIG.giftOptions[Math.floor(Math.random() * CONFIG.giftOptions.length)];
                 this.giftResult.textContent = prize;
                 this.confetti.launch(2000);
+
+                // Play win sound
+                if (AUDIO.winSound) {
+                    AUDIO.winSound.currentTime = 0;
+                    AUDIO.winSound.play().catch(e => console.log('Win sound play failed:', e));
+                }
             } else {
+                // Loser - Play fail sound
                 this.giftResult.innerHTML = '<div style="font-size: 1.2rem; color: #4A90E2;">Better luck next time 😄</div>';
+
+                // Play fail sound
+                if (AUDIO.failSound) {
+                    AUDIO.failSound.currentTime = 0;
+                    AUDIO.failSound.play().catch(e => console.log('Fail sound play failed:', e));
+                }
             }
 
             this.resetButton.style.display = 'block';
@@ -251,32 +265,37 @@ class MusicPlayer {
     constructor() {
         this.button = document.getElementById('music-toggle');
         this.isPlaying = false;
-        this.audio = null;
+        this.audio = AUDIO.backgroundMusic;
 
-        // Only initialize if music URL is provided
-        if (CONFIG.musicUrl) {
-            this.audio = new Audio(CONFIG.musicUrl);
-            this.audio.loop = true;
-            this.button.addEventListener('click', () => this.toggle());
-        } else {
-            this.button.addEventListener('click', () => {
-                this.button.style.animation = 'pulse 0.3s ease';
-                setTimeout(() => {
-                    this.button.style.animation = 'pulse 2s infinite';
-                }, 300);
-            });
+        // Set volume to mild (30%)
+        if (this.audio) {
+            this.audio.volume = 0.3;
         }
+
+        this.button.addEventListener('click', () => this.toggle());
     }
 
     toggle() {
-        if (!this.audio) return;
+        if (!this.audio) {
+            // If no audio file, just animate the button
+            this.button.style.animation = 'pulse 0.3s ease';
+            setTimeout(() => {
+                this.button.style.animation = 'pulse 2s infinite, slowRotate 10s linear infinite';
+            }, 300);
+            return;
+        }
 
         if (this.isPlaying) {
             this.audio.pause();
             this.button.textContent = '🎵';
+            this.button.style.opacity = '0.7';
         } else {
-            this.audio.play();
-            this.button.textContent = '🔇';
+            this.audio.play().catch(e => {
+                console.log('Background music play failed:', e);
+                alert('Click the music button again to start the background music!');
+            });
+            this.button.textContent = '🔊';
+            this.button.style.opacity = '1';
         }
 
         this.isPlaying = !this.isPlaying;
